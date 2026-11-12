@@ -8,7 +8,7 @@ Technical analysis library for crypto market — SMA, seasonality, and weekly su
 go get github.com/MinatoAka/chronos-calc
 ```
 
-## Usage:
+### Usage:
 ```go
 package main
 
@@ -39,7 +39,7 @@ func main() {
 }
 ```
 
-## FEATURES
+### FEATURES
 | Function | Purpose |
 | --- | --- |
 | `CalculateSMA(closes, period)` | Simple moving average |
