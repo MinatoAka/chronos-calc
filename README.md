@@ -47,7 +47,9 @@ func main() {
 | `ComputeSeasonality(candles)` | Monthly returns (mean, median, winrate) |
 | `ComputeSupportResistance(candles, tolerancePct) `| Weekly swing high/low clustering |
 
-### Notes
-- `ComputeSupportResistance requires tolerancePct` (decimal, e.g. ``0.005`` for 0.5%).
+Notes
+```
+- `ComputeSupportResistance requires tolerancePct` (decimal, e.g. `0.005` for 0.5%).
 - `SeasonalityResult.Insight` is left empty — caller fills it if needed.
 - All functions are stateless & pure.
+```
