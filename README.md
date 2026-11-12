@@ -9,7 +9,7 @@ go get github.com/MinatoAka/chronos-calc
 ```
 
 Usage:
-```
+```go
 package main
 
 import (
