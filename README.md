@@ -40,8 +40,9 @@ func main() {
 ```
 
 ## API
-|Function |Purpose |
-|`CalculateSMA(closes, period)` |Simple moving average |
-|`ComputeTrend(candles)` |SMA 20/50/200 + metadata |
-|`ComputeSeasonality(candles)` |Monthly returns (mean, median, winrate) |
-|`ComputeSupportResistance(candles, tolerancePct) `|Weekly swing high/low clustering |
+| Function | Purpose |
+| --- | --- |
+| `CalculateSMA(closes, period)` | Simple moving average |
+| `ComputeTrend(candles)` | SMA 20/50/200 + metadata |
+| `ComputeSeasonality(candles)` | Monthly returns (mean, median, winrate) |
+| `ComputeSupportResistance(candles, tolerancePct) `| Weekly swing high/low clustering |
