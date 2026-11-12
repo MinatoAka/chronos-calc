@@ -39,7 +39,7 @@ func main() {
 }
 ```
 
-## API
+## FEATURES
 | Function | Purpose |
 | --- | --- |
 | `CalculateSMA(closes, period)` | Simple moving average |
