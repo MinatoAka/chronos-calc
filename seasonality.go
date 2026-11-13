@@ -11,18 +11,20 @@ func ComputeSeasonality(rows []Candle) SeasonalityResult {
 		return SeasonalityResult{Error: "Data tidak cukup (min 365 hari)"}
 	}
 
-	// Defensive sorting
-	sort.Slice(rows, func(i, j int) bool {
-		return rows[i].Date < rows[j].Date
+	// FIX 5: Clone & sort untuk konsistensi
+	sortedRows := make([]Candle, len(rows))
+	copy(sortedRows, rows)
+	sort.Slice(sortedRows, func(i, j int) bool {
+		return sortedRows[i].Date < sortedRows[j].Date
 	})
 
 	// Ambil close terakhir per bulan (YYYY-MM)
 	monthClose := make(map[string]float64)
-	for _, r := range rows {
-		if len(r.Date) < 7 {
-			continue
+	for _, r := range sortedRows {
+		// FIX 6: Validasi format tanggal minimal YYYY-MM (7 char) sebelum slicing
+		if len(r.Date) >= 7 && r.Date[4] == '-' {
+			monthClose[r.Date[:7]] = r.Close
 		}
-		monthClose[r.Date[:7]] = r.Close
 	}
 
 	var sortedYM []string
@@ -49,8 +51,13 @@ func ComputeSeasonality(rows []Candle) SeasonalityResult {
 	// Kelompokkan return per bulan (1-12)
 	byMonth := make(map[int][]float64)
 	for _, m := range monthlyReturns {
-		mIdx, _ := strconv.Atoi(m.ym[5:7])
-		byMonth[mIdx] = append(byMonth[mIdx], m.ret)
+		// FIX 7: Safe parsing bulan, fallback jika format aneh
+		if len(m.ym) >= 7 {
+			mIdx, err := strconv.Atoi(m.ym[5:7])
+			if err == nil && mIdx >= 1 && mIdx <= 12 {
+				byMonth[mIdx] = append(byMonth[mIdx], m.ret)
+			}
+		}
 	}
 
 	monthNames := []string{"Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"}
