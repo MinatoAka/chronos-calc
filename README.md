@@ -6,6 +6,14 @@
 
 Technical analysis library for crypto market — SMA, seasonality, and weekly support/resistance.
 
+## Features
+
+- **Simple Moving Average (SMA)** — Calculate SMA 20/50/200 for trend analysis
+- **Seasonality Analysis** — Monthly return statistics (mean, median, winrate)
+- **Support & Resistance** — Weekly swing high/low clustering with configurable tolerance
+- **Pure Functions** — No side effects, input data remains unchanged
+- **Zero Dependencies** — Standard library only
+
 ## Install
 
 ```bash
@@ -78,16 +86,198 @@ fmt.Println(string(jsonBytes))
 ```
 
 **Output:**
+```json
+{
+  "Matrix": [
+    {
+      "Bulan": "Jan",
+      "Mean": 0.025,
+      "Median": 0.018,
+      "Winrate": 0.6,
+      "N": 5
+    },
+    {
+      "Bulan": "Feb",
+      "Mean": 0.032,
+      "Median": 0.029,
+      "Winrate": 0.8,
+      "N": 5
+    },
+    {
+      "Bulan": "Mar",
+      "Mean": -0.015,
+      "Median": -0.012,
+      "Winrate": 0.2,
+      "N": 5
+    },
+    {
+      "Bulan": "Apr",
+      "Mean": 0.058,
+      "Median": 0.061,
+      "Winrate": 1.0,
+      "N": 5
+    },
+    {
+      "Bulan": "Mei",
+      "Mean": -0.023,
+      "Median": -0.021,
+      "Winrate": 0.0,
+      "N": 5
+    },
+    {
+      "Bulan": "Jun",
+      "Mean": 0.012,
+      "Median": 0.009,
+      "Winrate": 0.6,
+      "N": 5
+    },
+    {
 
-### FEATURES
-| Function | Purpose |
-| --- | --- |
-| `CalculateSMA(closes, period)` | Simple moving average |
-| `ComputeTrend(candles)` | SMA 20/50/200 + metadata |
-| `ComputeSeasonality(candles)` | Monthly returns (mean, median, winrate) |
-| `ComputeSupportResistance(candles, tolerancePct) `| Weekly swing high/low clustering |
 
-### Notes
-- `ComputeSupportResistance requires tolerancePct` (decimal, e.g. `0.005` for 0.5%).
-- `SeasonalityResult.Insight` is left empty — caller fills it if needed.
-- All functions are stateless & pure.
+      "Bulan": "Jul",
+      "Mean": 0.045,
+      "Median": 0.042,
+      "Winrate": 0.8,
+      "N": 5
+    },
+    {
+      "Bulan": "Agu",
+      "Mean": -0.008,
+      "Median": -0.005,
+      "Winrate": 0.4,
+      "N": 5
+    },
+    {
+      "Bulan": "Sep",
+      "Mean": 0.021,
+      "Median": 0.019,
+      "Winrate": 0.6,
+      "N": 5
+    },
+    {
+      "Bulan": "Okt",
+      "Mean": 0.063,
+      "Median": 0.065,
+      "Winrate": 1.0,
+      "N": 5
+    },
+    {
+      "Bulan": "Nov",
+      "Mean": 0.038,
+      "Median": 0.035,
+      "Winrate": 0.8,
+      "N": 5
+    },
+    {
+      "Bulan": "Des",
+      "Mean": -0.011,
+      "Median": -0.009,
+      "Winrate": 0.2,
+      "N": 5
+    }
+  ],
+  "MonthsTotal": 60,
+  "YearsSpan": "2020-01 s/d 2024-12",
+  "Insight": "",
+  "Error": ""
+}
+```
+
+**Field Descriptions:**
+- `Mean` — Average monthly return (e.g., 0.025 = 2.5%)
+- `Median` — Median monthly return
+- `Winrate` — Percentage of positive months (e.g., 0.6 = 60%)
+- `N` — Number of years with data for that month
+
+**Case: Month without data (N=0)**
+```json
+{
+  "Bulan": "Feb",
+  "Mean": null,
+  "Median": null,
+  "Winrate": null,
+  "N": 0
+}
+```
+---
+
+### ComputeSupportResistance — Weekly S&R Levels
+
+```go
+// tolerancePct: clustering tolerance (e.g., 0.005 = 0.5%)
+sr := chronoscalc.ComputeSupportResistance(candles, 0.005)
+
+jsonBytes, _ := json.MarshalIndent(sr, "", "  ")
+fmt.Println(string(jsonBytes))
+```
+
+**Output:**
+```json
+{
+  "CurrentPrice": 660000000,
+  "Resistances": [
+    {
+      "Price": 670500000,
+      "Count": 3
+    },
+    {
+      "Price": 685200000,
+      "Count": 2
+    }
+  ],
+  "Supports": [
+    {
+      "Price": 650300000,
+      "Count": 4
+    },
+    {
+      "Price": 635800000,
+      "Count": 2
+    }
+  ],
+  "Error": ""
+}
+```
+
+**Field Descriptions:**
+- `CurrentPrice` — Latest close price
+- `Resistances` — Top 2 resistance levels above current price (sorted ascending)
+- `Supports` — Top 2 support levels below current price (sorted descending)
+- `Count` — Number of weekly touches at that level
+
+**Case: Insufficient data**
+```json
+{
+  "CurrentPrice": 0,
+  "Resistances": null,
+  "Supports": null,
+  "Error": "Data mingguan tidak cukup"
+}
+```
+---
+
+## API Reference
+
+| Function | Signature | Description |
+|---|---|---|
+| `CalculateSMA` | `CalculateSMA(closes []float64, period int) *float64` | Simple Moving Average of last N values |
+| `ComputeTrend` | `ComputeTrend(rows []Candle) TrendResult` | SMA 20/50/200 + metadata |
+| `ComputeSeasonality` | `ComputeSeasonality(rows []Candle) SeasonalityResult` | Monthly return statistics (min 365 days) |
+| `ComputeSupportResistance` | `ComputeSupportResistance(rows []Candle, tolerancePct float64) SRResult` | Weekly swing high/low clustering |
+
+## Requirements
+
+- **ComputeTrend**: Minimum 2 candles (returns nil for SMA if data < period)
+- **ComputeSeasonality**: Minimum 365 days of data
+- **ComputeSupportResistance**: Minimum 10 weeks of data
+
+## Thread Safety
+
+All functions are safe for concurrent use. Input slices are cloned internally to prevent side effects.
+
+## Test
+
+```bash
+go test ./...
+```
+---
