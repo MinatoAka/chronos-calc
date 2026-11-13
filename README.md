@@ -20,6 +20,12 @@ Technical analysis library for crypto market — SMA, seasonality, and weekly su
 go get github.com/MinatoAka/chronos-calc
 ```
 
+## Test
+
+```bash
+go test ./...
+```
+
 ### Usage:
 
 ### ComputeTrend — SMA Analysis
@@ -275,9 +281,4 @@ fmt.Println(string(jsonBytes))
 
 All functions are safe for concurrent use. Input slices are cloned internally to prevent side effects.
 
-## Test
-
-```bash
-go test ./...
-```
 ---
