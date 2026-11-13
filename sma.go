@@ -18,22 +18,24 @@ func CalculateSMA(closes []float64, period int) *float64 {
 }
 
 // ComputeTrend — hitung SMA 20/50/200 dari data candle.
-// Data di-sort ASC dulu untuk memastikan perhitungan benar.
 func ComputeTrend(rows []Candle) TrendResult {
 	if len(rows) < 2 {
 		return TrendResult{Error: "Data tidak cukup"}
 	}
 
-	// Defensive sorting
-	sort.Slice(rows, func(i, j int) bool {
-		return rows[i].Date < rows[j].Date
+	// FIX 1: Clone slice untuk mencegah side-effect (mengubah urutan data asli caller)
+	sortedRows := make([]Candle, len(rows))
+	copy(sortedRows, rows)
+	
+	sort.Slice(sortedRows, func(i, j int) bool {
+		return sortedRows[i].Date < sortedRows[j].Date
 	})
 
-	closes := make([]float64, len(rows))
-	for i, r := range rows {
+	closes := make([]float64, len(sortedRows))
+	for i, r := range sortedRows {
 		closes[i] = r.Close
 	}
-	last := rows[len(rows)-1]
+	last := sortedRows[len(sortedRows)-1]
 
 	return TrendResult{
 		Pair:      last.Pair,
@@ -42,6 +44,6 @@ func ComputeTrend(rows []Candle) TrendResult {
 		SMA20:     CalculateSMA(closes, 20),
 		SMA50:     CalculateSMA(closes, 50),
 		SMA200:    CalculateSMA(closes, 200),
-		RowsCount: len(rows),
+		RowsCount: len(sortedRows),
 	}
 }
