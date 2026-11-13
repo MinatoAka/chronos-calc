@@ -13,35 +13,71 @@ go get github.com/MinatoAka/chronos-calc
 ```
 
 ### Usage:
+
+### ComputeTrend — SMA Analysis
+
 ```go
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	chronoscalc "github.com/MinatoAka/chronos-calc"
 )
 
 func main() {
 	candles := []chronoscalc.Candle{
-		{Date: "2024-01-01", Close: 100},
-		{Date: "2024-01-02", Close: 105},
-		// ... isi dengan data nyata
+		{Date: "2024-01-01", Pair: "BTCIDR", Open: 650000000, High: 660000000, Low: 645000000, Close: 655000000, Volume: 100},
+		{Date: "2024-01-02", Pair: "BTCIDR", Open: 655000000, High: 665000000, Low: 650000000, Close: 660000000, Volume: 120},
+		// ... add more candles (minimum 2 for basic SMA, 200 for SMA200)
 	}
 
-	// SMA
 	trend := chronoscalc.ComputeTrend(candles)
-	fmt.Printf("SMA20: %v\n", trend.SMA20)
-
-	// Seasonality
-	season := chronoscalc.ComputeSeasonality(candles)
-	fmt.Printf("Month returns: %+v\n", season.Matrix)
-
-	// Support & Resistance (tolerance 0.5%)
-	sr := chronoscalc.ComputeSupportResistance(candles, 0.005)
-	fmt.Printf("R1: %+v\n", sr.Resistances)
-	fmt.Printf("S1: %+v\n", sr.Supports)
+	
+	jsonBytes, _ := json.MarshalIndent(trend, "", "  ")
+	fmt.Println(string(jsonBytes))
 }
 ```
+
+**Output:**
+```json
+{
+  "Pair": "BTCIDR",
+  "AsOf": "2024-12-31",
+  "Close": 660000000,
+  "SMA20": 655200000,
+  "SMA50": 648500000,
+  "SMA200": 635800000,
+  "RowsCount": 1825,
+  "Error": ""
+}
+```
+
+**Case: Less than 200 days of data**
+```json
+{
+  "Pair": "BTCIDR",
+  "AsOf": "2024-12-31",
+  "Close": 660000000,
+  "SMA20": 655200000,
+  "SMA50": 648500000,
+  "SMA200": null,
+  "RowsCount": 150,
+  "Error": ""
+}
+```
+---
+
+### ComputeSeasonality — Monthly Return Statistics
+
+```go
+season := chronoscalc.ComputeSeasonality(candles)
+
+jsonBytes, _ := json.MarshalIndent(season, "", "  ")
+fmt.Println(string(jsonBytes))
+```
+
+**Output:**
 
 ### FEATURES
 | Function | Purpose |
