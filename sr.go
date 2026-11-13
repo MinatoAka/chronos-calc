@@ -19,6 +19,7 @@ func getMonday(t time.Time) time.Time {
 }
 
 // AggregateToWeekly — gabungkan candle harian menjadi candle mingguan.
+// Asumsi: rows sudah ter-sort secara kronologis (ASC).
 func AggregateToWeekly(rows []Candle) []Candle {
 	var weekly []Candle
 	var current *Candle
@@ -56,22 +57,25 @@ func AggregateToWeekly(rows []Candle) []Candle {
 }
 
 // ComputeSupportResistance — cari level S&R dari swing high/low mingguan.
-// tolerancePct: toleransi jarak (dalam desimal, misal 0.005 = 0.5%).
 func ComputeSupportResistance(rows []Candle, tolerancePct float64) SRResult {
-	// Defensive sorting
-	sort.Slice(rows, func(i, j int) bool {
-		return rows[i].Date < rows[j].Date
-	})
-
-	weekly := AggregateToWeekly(rows)
-	if len(weekly) < 10 {
-		return SRResult{Error: "Data mingguan tidak cukup"}
-	}
+	// FIX 2: Pindahkan check kosong ke paling atas (sebelum proses apa pun)
 	if len(rows) == 0 {
 		return SRResult{Error: "Data harian kosong"}
 	}
-	currentPrice := rows[len(rows)-1].Close
 
+	// FIX 3: Clone & sort agar AggregateToWeekly menerima data yang terurut
+	sortedRows := make([]Candle, len(rows))
+	copy(sortedRows, rows)
+	sort.Slice(sortedRows, func(i, j int) bool {
+		return sortedRows[i].Date < sortedRows[j].Date
+	})
+
+	weekly := AggregateToWeekly(sortedRows)
+	if len(weekly) < 10 {
+		return SRResult{Error: "Data mingguan tidak cukup"}
+	}
+
+	currentPrice := sortedRows[len(sortedRows)-1].Close
 	windowSize := 2
 	var swingHighs, swingLows []float64
 
@@ -93,6 +97,7 @@ func ComputeSupportResistance(rows []Candle, tolerancePct float64) SRResult {
 		}
 	}
 
+	// FIX 4: Gunakan tolerancePct untuk clustering, bukan hardcoded 1.02
 	cluster := func(prices []float64) []SRLevel {
 		if len(prices) == 0 {
 			return nil
@@ -102,11 +107,14 @@ func ComputeSupportResistance(rows []Candle, tolerancePct float64) SRResult {
 		var res []SRLevel
 		var currentMin, currentMax float64
 		var currentCount int
+		
+		// Toleransi clustering dinamis (misal tolerancePct 0.005 -> 1.005)
+		clusterTolerance := 1.0 + tolerancePct
 
 		for i, p := range prices {
 			if i == 0 {
 				currentMin, currentMax, currentCount = p, p, 1
-			} else if p <= currentMin*1.02 { // anti-clustering creep
+			} else if p <= currentMin*clusterTolerance { 
 				currentMax = p
 				currentCount++
 			} else {
@@ -152,5 +160,4 @@ func ComputeSupportResistance(rows []Candle, tolerancePct float64) SRResult {
 	}
 }
 
-// helper untuk mencegah unused import math (dipakai di cluster jika diperlukan)
-var _ = math.Max
+var _ = math.Max // prevent unused import
