@@ -1,7 +1,6 @@
 package chronoscalc
 
 import (
-	"math"
 	"sort"
 	"time"
 )
@@ -159,5 +158,3 @@ func ComputeSupportResistance(rows []Candle, tolerancePct float64) SRResult {
 		Supports:     supports,
 	}
 }
-
-var _ = math.Max // prevent unused import
