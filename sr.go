@@ -57,12 +57,11 @@ func AggregateToWeekly(rows []Candle) []Candle {
 
 // ComputeSupportResistance — cari level S&R dari swing high/low mingguan.
 func ComputeSupportResistance(rows []Candle, tolerancePct float64) SRResult {
-	// FIX 2: Pindahkan check kosong ke paling atas (sebelum proses apa pun)
 	if len(rows) == 0 {
 		return SRResult{Error: "Data harian kosong"}
 	}
 
-	// FIX 3: Clone & sort agar AggregateToWeekly menerima data yang terurut
+	// Clone & sort agar AggregateToWeekly menerima data yang terurut
 	sortedRows := make([]Candle, len(rows))
 	copy(sortedRows, rows)
 	sort.Slice(sortedRows, func(i, j int) bool {
@@ -96,7 +95,7 @@ func ComputeSupportResistance(rows []Candle, tolerancePct float64) SRResult {
 		}
 	}
 
-	// FIX 4: Gunakan tolerancePct untuk clustering, bukan hardcoded 1.02
+	// Clustering dengan toleransi dinamis
 	cluster := func(prices []float64) []SRLevel {
 		if len(prices) == 0 {
 			return nil
@@ -107,14 +106,16 @@ func ComputeSupportResistance(rows []Candle, tolerancePct float64) SRResult {
 		var currentMin, currentMax float64
 		var currentCount int
 		
-		// Toleransi clustering dinamis (misal tolerancePct 0.005 -> 1.005)
 		clusterTolerance := 1.0 + tolerancePct
 
 		for i, p := range prices {
 			if i == 0 {
 				currentMin, currentMax, currentCount = p, p, 1
 			} else if p <= currentMin*clusterTolerance { 
-				currentMax = p
+				// FIX: Pastikan currentMax adalah nilai tertinggi dalam cluster, bukan elemen terakhir
+				if p > currentMax {
+					currentMax = p
+				}
 				currentCount++
 			} else {
 				res = append(res, SRLevel{Price: (currentMin + currentMax) / 2, Count: currentCount})
@@ -142,9 +143,11 @@ func ComputeSupportResistance(rows []Candle, tolerancePct float64) SRResult {
 		}
 	}
 
+	// Sortir: Resistance ascending (terdekat di atas), Support descending (terdekat di bawah)
 	sort.Slice(resistances, func(i, j int) bool { return resistances[i].Price < resistances[j].Price })
 	sort.Slice(supports, func(i, j int) bool { return supports[i].Price > supports[j].Price })
 
+	// Batasi maksimal 2 level teratas
 	if len(resistances) > 2 {
 		resistances = resistances[:2]
 	}
