@@ -2,7 +2,7 @@ package chronoscalc
 
 import (
 	"sort"
-	"strconv"
+	"time"
 )
 
 // ComputeSeasonality — hitung return bulanan per bulan (Mean, Median, Winrate, N).
@@ -11,20 +11,22 @@ func ComputeSeasonality(rows []Candle) SeasonalityResult {
 		return SeasonalityResult{Error: "Data tidak cukup (min 365 hari)"}
 	}
 
-	// FIX 5: Clone & sort untuk konsistensi
+	// Clone & sort untuk konsistensi dan mencegah side-effect
 	sortedRows := make([]Candle, len(rows))
 	copy(sortedRows, rows)
 	sort.Slice(sortedRows, func(i, j int) bool {
 		return sortedRows[i].Date < sortedRows[j].Date
 	})
 
-	// Ambil close terakhir per bulan (YYYY-MM)
+	// Ambil close terakhir per bulan (YYYY-MM) menggunakan time.Parse agar aman
 	monthClose := make(map[string]float64)
 	for _, r := range sortedRows {
-		// FIX 6: Validasi format tanggal minimal YYYY-MM (7 char) sebelum slicing
-		if len(r.Date) >= 7 && r.Date[4] == '-' {
-			monthClose[r.Date[:7]] = r.Close
+		t, err := time.Parse("2006-01-02", r.Date)
+		if err != nil {
+			continue // Skip baris dengan format tanggal tidak valid
 		}
+		ym := t.Format("2006-01")
+		monthClose[ym] = r.Close
 	}
 
 	var sortedYM []string
@@ -33,7 +35,7 @@ func ComputeSeasonality(rows []Candle) SeasonalityResult {
 	}
 	sort.Strings(sortedYM)
 
-	// Return bulanan
+	// Hitung return bulanan
 	var monthlyReturns []struct {
 		ym  string
 		ret float64
@@ -51,16 +53,15 @@ func ComputeSeasonality(rows []Candle) SeasonalityResult {
 	// Kelompokkan return per bulan (1-12)
 	byMonth := make(map[int][]float64)
 	for _, m := range monthlyReturns {
-		// FIX 7: Safe parsing bulan, fallback jika format aneh
-		if len(m.ym) >= 7 {
-			mIdx, err := strconv.Atoi(m.ym[5:7])
-			if err == nil && mIdx >= 1 && mIdx <= 12 {
-				byMonth[mIdx] = append(byMonth[mIdx], m.ret)
-			}
+		t, err := time.Parse("2006-01", m.ym)
+		if err != nil {
+			continue
 		}
+		mIdx := int(t.Month())
+		byMonth[mIdx] = append(byMonth[mIdx], m.ret)
 	}
 
-	monthNames := []string{"Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"}
+	monthNames := []string{"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Des"}
 	var matrix []SeasonalityRow
 
 	for m := 1; m <= 12; m++ {
