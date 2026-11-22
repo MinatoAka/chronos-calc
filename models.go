@@ -67,11 +67,12 @@ type EMATrendResult struct {
 	Error     string   `json:"error,omitempty"`
 }
 
-// EMACrossResult — hasil deteksi cross EMA20 vs EMA50.
+// EMACrossResult — hasil deteksi harga (Close) nembus EMA20.
 type EMACrossResult struct {
 	Pair      string  `json:"pair"`
 	AsOf      string  `json:"as_of"`
 	Close     float64 `json:"close"`
-	CrossType string  `json:"cross_type"` // "GOLDEN_CROSS" | "DEATH_CROSS" | "NONE"
+	EMA20     *float64 `json:"ema20"`
+	CrossType string  `json:"cross_type"` // "BULLISH_CROSS" | "BEARISH_CROSS" | "NONE"
 	Error     string  `json:"error,omitempty"`
 }
