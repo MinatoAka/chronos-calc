@@ -54,3 +54,24 @@ type SRResult struct {
 	Supports     []SRLevel `json:"supports"`
 	Error        string    `json:"error,omitempty"`
 }
+
+// EMATrendResult — hasil perbandingan EMA20 & EMA50.
+type EMATrendResult struct {
+	Pair      string   `json:"pair"`
+	AsOf      string   `json:"as_of"`
+	Close     float64  `json:"close"`
+	EMA20     *float64 `json:"ema20"`
+	EMA50     *float64 `json:"ema50"`
+	Trend     string   `json:"trend"` // "BULLISH" | "BEARISH" | "NEUTRAL"
+	RowsCount int      `json:"rows_count"`
+	Error     string   `json:"error,omitempty"`
+}
+
+// EMACrossResult — hasil deteksi cross EMA20 vs EMA50.
+type EMACrossResult struct {
+	Pair      string  `json:"pair"`
+	AsOf      string  `json:"as_of"`
+	Close     float64 `json:"close"`
+	CrossType string  `json:"cross_type"` // "GOLDEN_CROSS" | "DEATH_CROSS" | "NONE"
+	Error     string  `json:"error,omitempty"`
+}
