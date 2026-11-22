@@ -5,6 +5,7 @@ Calculator technical analysis library for crypto market — SMA, EMA, seasonalit
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/MinatoAka/chronos-calc.svg)](https://pkg.go.dev/github.com/MinatoAka/chronos-calc)
 [![Made with Go](https://img.shields.io/badge/Made%20with-Go-00ADD8?logo=go)](https://go.dev/)
+[![Go Tests](https://github.com/MinatoAka/indodax-go/actions/workflows/go.yml/badge.svg)](https://github.com/MinatoAka/indodax-go/actions/workflows/go.yml)
 [![Support Me](https://img.shields.io/badge/Support%20Me-Saweria-ff69b4?logo=coffee&logoColor=white)](https://saweria.co/)
 
 </div>
